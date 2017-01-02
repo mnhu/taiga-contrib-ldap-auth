@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ldap3 import Server, Connection, SIMPLE, ANONYMOUS, SYNC, SIMPLE, SYNC, ASYNC, SUBTREE, NONE
+from ldap3 import Server, Connection, SIMPLE, ANONYMOUS, SYNC, SIMPLE, SYNC, ASYNC, SUBTREE, NONE, SASL
 
 from django.conf import settings
 from taiga.base.connectors.exceptions import ConnectorBaseException
@@ -48,7 +48,9 @@ def login(username: str, password: str) -> tuple:
 
         c = None
 
-        if BIND_DN is not None and BIND_DN != '':
+        if BIND_DN and BIND_DN == "SASL":
+            c = Connection(server, auto_bind = True, client_strategy = SYNC, authentication=SASL, sasl_mechanism='GSSAPI', check_names=True)
+        elif BIND_DN is not None and BIND_DN != '':
             c = Connection(server, auto_bind = True, client_strategy = SYNC, user=BIND_DN, password=BIND_PASSWORD, authentication=SIMPLE, check_names=True)
         else:
             c = Connection(server, auto_bind = True, client_strategy = SYNC, user=None, password=None, authentication=ANONYMOUS, check_names=True)
